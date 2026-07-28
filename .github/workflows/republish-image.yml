@@ -1,0 +1,66 @@
+name: Republish Docker image
+
+# Manually rebuild and re-push an already-released image to GHCR.
+# Use case: the published multi-arch image became corrupt/unpullable
+# (e.g. platform manifests garbage-collected) and needs regenerating
+# without cutting a new release.
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Released version to rebuild & republish (e.g. 0.2.0). Must have a matching v<version> git tag."
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  republish:
+    name: Rebuild & republish ${{ inputs.version }}
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_ACTOR: hyperledger-bot
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Git checkout (release tag)
+        uses: actions/checkout@v4
+        with:
+          ref: v${{ inputs.version }}
+
+      - name: Setup Java and Scala
+        uses: olafurpg/setup-scala@v14
+        with:
+          java-version: openjdk@1.17
+
+      - name: Cache sbt
+        uses: coursier/cache-action@v6.4
+
+      - name: Build plugin jar
+        run: sbt "oid4vciPlugin / Compile / packageBin"
+
+      - name: Verify jar present for Dockerfile-ci
+        run: ls -la target/*.jar
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ env.GITHUB_ACTOR }}
+          password: ${{ env.GITHUB_TOKEN }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build and push multi-arch image
+        run: |
+          docker buildx build \
+            --platform=linux/arm64,linux/amd64 \
+            --provenance=false --sbom=false \
+            -f Dockerfile-ci \
+            --push \
+            -t ghcr.io/hyperledger/identus-keycloak-plugins:${{ inputs.version }} .
