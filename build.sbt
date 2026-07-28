@@ -6,13 +6,7 @@ val V = new {
   val keycloak = "23.0.7"
 }
 
-lazy val commonSettings = Seq(
-  githubOwner := "hyperledger",
-  githubRepository := "identus-keycloak-plugins"
-)
-
 lazy val oid4vciPlugin = (project in file("."))
-  .settings(commonSettings)
   .settings(
     name := "identus-keycloak-oid4vci",
     libraryDependencies ++= Seq(
@@ -40,6 +34,5 @@ releaseProcess := Seq[ReleaseStep](
   runTest,
   setReleaseVersion,
   ReleaseStep(releaseStepTask(oid4vciPlugin / Compile / packageBin)),
-  publishArtifacts,
   setNextVersion
 )
