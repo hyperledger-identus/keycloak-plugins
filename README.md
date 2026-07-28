@@ -25,7 +25,7 @@ the Identus cloud agent stack.
 ```yaml
 services:
   keycloak-oid4vci-issuer:
-    image: ghcr.io/hyperledger/identus-keycloak-plugins:0.1.0
+    image: ghcr.io/hyperledger-identus/keycloak-plugins:0.2.1
     ports:
       - "9980:8080"
     command:
@@ -55,7 +55,7 @@ The image contains plugin JARs in the `/opt/keycloak/providers` directory
 Example `Dockerfile`
 
 ```
-FROM ghcr.io/hyperledger/identus-keycloak-plugins:0.1.0 AS dist
+FROM ghcr.io/hyperledger-identus/keycloak-plugins:0.2.1 AS dist
 
 FROM quay.io/keycloak/keycloak:23.0.7
 COPY --from=dist /opt/keycloak/providers/<PLUGIN_FILE>.jar /opt/keycloak/providers/<PLUGIN_FILE>.jar
