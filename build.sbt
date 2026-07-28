@@ -7,8 +7,8 @@ val V = new {
 }
 
 lazy val commonSettings = Seq(
-  githubOwner := "hyperledger",
-  githubRepository := "identus-keycloak-plugins"
+  githubOwner := "hyperledger-identus",
+  githubRepository := "keycloak-plugins"
 )
 
 lazy val oid4vciPlugin = (project in file("."))
